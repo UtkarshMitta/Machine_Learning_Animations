@@ -2,6 +2,7 @@ from manim import *
 import random
 from pynverse import inversefunc
 from math import e
+from scipy.stats import norm
 
 
 class ExampleFunctionGraph(Scene):
@@ -16,8 +17,8 @@ class ExampleFunctionGraph(Scene):
     def construct(self):
         n = int(input())
         grid = Axes(
-            x_range=[0, 1, 0.2],
-            y_range=[-1, 1, 0.2],
+            x_range=[0, 1, 0.1],
+            y_range=[-1, 1, 0.1],
             tips=False,
             axis_config={"include_numbers": True},
         )
@@ -27,7 +28,10 @@ class ExampleFunctionGraph(Scene):
         graph += grid.plot(lambda x: 1 - (e ** (-x)), color=WHITE)
         for i in range(n):
             y_list.append(random.uniform(0, 1))
-        inverse = inversefunc(lambda x: x**3)
+        inverse = inversefunc(lambda x: 1 - (e ** (-x)))
+        inverse_list = []
+        for element in y_list:
+            inverse_list.append(element)
         self.add(graph, grid)
         for element in y_list:
             dot = Dot(grid.coords_to_point(0, element, 0), color=RED)
@@ -37,14 +41,14 @@ class ExampleFunctionGraph(Scene):
         hline = VGroup()
         vline = VGroup()
         dot = VGroup()
-        for element in y_list:
+        for i in range(n):
             hline += grid.get_horizontal_line(
-                grid.c2p(abs(inverse(element)), element, 0), color=BLUE
+                grid.c2p(inverse_list[i], y_list[i], 0), color=BLUE
             )
             vline += grid.get_vertical_line(
-                grid.c2p(abs(inverse(element)), element, 0), color=BLUE
+                grid.c2p(inverse_list[i], y_list[i], 0), color=BLUE
             )
-            dot += Dot(grid.coords_to_point(abs(inverse(element)), 0, 0), color=YELLOW)
+            dot += Dot(grid.coords_to_point(inverse_list[i], 0, 0), color=YELLOW)
         self.add(hline)
         self.play(Create(hline))
         self.play(Create(vline))
@@ -60,7 +64,7 @@ class ExampleFunctionGraph(Scene):
         self.play(FadeOut(dot))
         dicto = {}
         for element in range(len(y_list)):
-            y_list[element] = np.round(abs(inverse(y_list[element])), 1)
+            y_list[element] = np.round(inverse_list[i], 1)
         for element in y_list:
             dicto[element] = dicto.get(element, 0) + 1
         Random = []
@@ -72,14 +76,6 @@ class ExampleFunctionGraph(Scene):
         for element in master:
             Random.append(element[0])
             pdf.append((element[1]) / (n * 0.1))
-        grid2 = Axes(
-            x_range=[0, max(Random), 0.1],
-            y_range=[-max(pdf), max(pdf), 0.2],
-            tips=False,
-            axis_config={"include_numbers": True},
-        )
-        self.play(Transform(grid, grid2))
-        grid = grid2
         rect = VGroup()
         for element in range(len(Random)):
             rect += Polygon(
