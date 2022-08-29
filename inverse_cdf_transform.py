@@ -99,7 +99,7 @@ class ExampleFunctionGraph(Scene):
         inverse = inversefunc(lambda x: norm.cdf(x))
         inverse_list = []
         for element in y_list:
-            inverse_list.append(abs(inverse(element)))
+            inverse_list.append(inverse(element))
         self.add(graph, grid)
         for element in y_list:
             dot = Dot(grid.coords_to_point(0, element, 0), color=RED)
