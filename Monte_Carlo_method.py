@@ -1,7 +1,22 @@
 import numpy
 from manim import *
 from math import pi
+import matplotlib.pyplot as plt
 
+num=50
+sub_num=0
+pi_current=numpy.zeros(10)
+x_axes=numpy.random.uniform(-1,1,500)
+y_axes=numpy.random.uniform(-1,1,500)
+index=0
+while num<=500:
+    for i in range(50):
+        if x_axes[num-50+i]**2+y_axes[num-50+i]**2<1:
+            sub_num+=1
+    pi_current[num//50-1]=4*sub_num/num
+    num+=50
+plt.plot(numpy.arange(0,500,50),pi_current)
+plt.show()
 
 class MonteCarlo(Scene):
     def construct(self):
@@ -24,7 +39,6 @@ class MonteCarlo(Scene):
         dot_group = VGroup()
         self.add(dot_group)
         num = 50
-        sub_num = 0
         eq1 = MathTex(r"\pi").shift(3 * UP + 7 * LEFT)
         self.add(eq1)
         self.play(FadeIn(eq1))
@@ -37,29 +51,21 @@ class MonteCarlo(Scene):
             r"=4*\frac{Number \ of \ point \ in \ Circle}{Number \ of \ points \ in \ square}"
         ).next_to(eq2, 2 * RIGHT)
         self.play(FadeIn(eq3))
-        pi_current = 0
-        pi_previous = 0
         while num != 550:
             dot_subgroup = VGroup()
             for i in range(50):
-                a, b = (
-                    numpy.random.uniform(-1, 1, 1)[0],
-                    numpy.random.uniform(-1, 1, 1)[0],
-                )
+                a,b=x_axes[num-50+i],y_axes[num-50+i]
                 dot = Dot(point=(a, b, 0)).shift(UP + 2 * LEFT)
-                if a**2 + b**2 <= 1:
-                    sub_num += 1
                 dot_subgroup.add(dot)
             dot_group.add(dot_subgroup)
             self.play(FadeIn(dot_subgroup))
-            pi_current = 4 * sub_num / num
             
             line=Line(
-                    start=myplane.c2p(num-50,pi_previous,0),
-                    end=myplane.c2p(num, pi_current, 0), color=GREEN
+                    start=myplane.c2p(0,0,0) if num==50 else myplane.c2p(num-50,pi_current[num//50-2],0),
+                    end=myplane.c2p(num, pi_current[num//50-1], 0), color=GREEN
                 )
-            dot=Dot(point=myplane.c2p(num,pi_current,0),color=BLUE)
-            label=MathTex(r"("+str(num)+", "+str(pi_current)[:4]+")").scale(0.4).next_to(dot,UP if (num//50)%2==1 else DOWN)
+            dot=Dot(point=myplane.c2p(num,pi_current[num//50-1],0),color=BLUE)
+            label=MathTex(r"("+str(num)+", "+str(pi_current[num//50-1])[:4]+")").scale(0.4).next_to(dot,UP if (num//50)%2==1 else DOWN)
             self.add(line)
             self.play(Create(line))
             self.add(dot)
