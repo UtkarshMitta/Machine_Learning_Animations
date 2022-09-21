@@ -5,6 +5,8 @@ from math import log
 from scipy.stats import norm
 from scipy.stats import expon
 from scipy.integrate import quad
+import matplotlib.pyplot as plt
+import seaborn
 
 
 def func(x, choose):
@@ -30,6 +32,8 @@ choice = int(input())
 y_list = numpy.random.uniform(0, 1, n)
 vfunc = numpy.vectorize(inverse_func)
 inverse_list = vfunc(y_list, choice)
+seaborn.kdeplot(data=inverse_list)
+plt.show()
 
 
 def kde(x):
@@ -38,16 +42,20 @@ def kde(x):
         sum += norm.pdf(x, entry)
     return sum / len(inverse_list)
 
+
 def integrand(x):
-    return func(x,choice)*log(func(x,choice)/kde(x)) if func(x,choice)!=0 else 0
+    return (
+        func(x, choice) * log(func(x, choice) / kde(x)) if func(x, choice) != 0 else 0
+    )
 
 
 numpy_kde = numpy.vectorize(kde)
 kde_list = numpy_kde(inverse_list)
 pdf_func = numpy.vectorize(func)
 actual = pdf_func(inverse_list, choice)
-kl_divergence=quad(integrand,-10,10)
+kl_divergence = quad(integrand, -10, 10)
 print(kl_divergence)
+
 
 class ExampleFunctionGraph(Scene):
     def construct(self):
@@ -107,8 +115,8 @@ class ExampleFunctionGraph(Scene):
         self.wait(1)
         hline = []
         vline = []
-        horizon=VGroup()
-        vertic=VGroup()
+        horizon = VGroup()
+        vertic = VGroup()
         for i in range(10):
             horizontal = VGroup()
             vertical = VGroup()
@@ -136,9 +144,9 @@ class ExampleFunctionGraph(Scene):
         x += graph
         self.play(FadeOut(x))
         for i in range(len(hline)):
-            horizon+=hline[i]
-            vertic+=vline[i]
-        self.add(horizon,vertic)
+            horizon += hline[i]
+            vertic += vline[i]
+        self.add(horizon, vertic)
         self.play(FadeOut(horizon))
         self.play(FadeOut(vertic))
 
