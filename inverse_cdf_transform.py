@@ -43,17 +43,13 @@ def kde(x):
     return sum / len(inverse_list)
 
 
-def integrand(x):
-    return (
-        func(x, choice) * log(func(x, choice) / kde(x)) if func(x, choice) != 0 else 0
-    )
-
-
 numpy_kde = numpy.vectorize(kde)
 kde_list = numpy_kde(inverse_list)
 pdf_func = numpy.vectorize(func)
 actual = pdf_func(inverse_list, choice)
-kl_divergence = quad(integrand, -10, 10)
+kl_divergence = (
+    1 / n * sum(numpy.log(actual[i]) - numpy.log(kde_list[i]) for i in range(n))
+)
 print(kl_divergence)
 
 
@@ -160,11 +156,25 @@ class ExampleFunctionGraph(Scene):
         self.play(FadeOut(text))
         grid.set_opacity(1)
         dot.set_opacity(1)
+        legends=VGroup()
+        kde_line=Line(start=numpy.array([1,-1,0]),end=numpy.array([1.5,-1,0]),color=WHITE)
+        actual_line=Line(start=numpy.array([1,-1.5,0]),end=numpy.array([1.5,-1.5,0]),color=GREEN)
+        kde_text=Tex("kde plot").next_to(kde_line,RIGHT).scale(0.5)
+        actual_text=Tex("actual pdf").next_to(actual_line,RIGHT).scale(0.5)
+        legends+=kde_line
+        legends+=actual_line
+        legends+=kde_text
+        legends+=actual_text
+        self.add(kde_line,actual_line,kde_text,actual_text)
         self.add(graph2)
+        actual_graph=grid.plot(lambda x: func(x, choice), color=GREEN)
         self.play(FadeIn(graph2))
+        self.play(FadeIn(actual_graph))
         self.wait(1)
         self.play(FadeOut(dot))
         self.play(FadeOut(graph2))
+        self.play(FadeOut(actual_graph))
+        self.play(FadeOut(legends))
         text = Tex("K-L Divergence")
         self.play(FadeOut(grid))
         self.add(text)
@@ -180,6 +190,6 @@ class ExampleFunctionGraph(Scene):
         self.add(eq2)
         self.play(FadeIn(eq2))
 
-        eq3 = MathTex(kl_divergence[0]).next_to(eq2, 2 * RIGHT)
+        eq3 = MathTex(kl_divergence).next_to(eq2, 2 * RIGHT)
         self.add(eq3)
         self.play(FadeIn(eq3))

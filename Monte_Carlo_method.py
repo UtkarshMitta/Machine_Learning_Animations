@@ -22,17 +22,17 @@ class MonteCarlo(Scene):
     def construct(self):
         num = 0
         myplane = (
-            NumberPlane(
-                x_range=[0, 500, 50], x_length=5, y_range=[0, 5, 0.5], y_length=5
+            Axes(
+                x_range=[0, 500, 50], x_length=7, y_range=[0, 5, 0.5], y_length=5
             )
-            .shift(DOWN + 2 * RIGHT)
+            .shift(DOWN + 3 * RIGHT)
             .add_coordinates()
         )
         self.add(myplane)
         line = myplane.get_horizontal_line(myplane.c2p(510, pi, 0), color=YELLOW)
         self.add(line)
-        circle = Circle(radius=1, color=GREEN).shift(UP + 2 * LEFT)
-        square = Square(side_length=2, color=RED).shift(UP + 2 * LEFT)
+        circle = Circle(radius=1, color=GREEN).shift(UP + 3 * LEFT)
+        square = Square(side_length=2, color=RED).shift(UP + 3 * LEFT)
         self.play(DrawBorderThenFill(myplane))
         self.play(Create(circle))
         self.play(Create(square))
@@ -55,7 +55,10 @@ class MonteCarlo(Scene):
             dot_subgroup = VGroup()
             for i in range(50):
                 a,b=x_axes[num-50+i],y_axes[num-50+i]
-                dot = Dot(point=(a, b, 0)).shift(UP + 2 * LEFT)
+                if a**2+b**2<=1:
+                    dot = Dot(point=(a, b, 0),color=GREEN,radius=0.05).shift(UP + 3 * LEFT)
+                else:
+                    dot = Dot(point=(a, b, 0),color=RED,radius=0.05).shift(UP + 3 * LEFT)
                 dot_subgroup.add(dot)
             dot_group.add(dot_subgroup)
             self.play(FadeIn(dot_subgroup))
