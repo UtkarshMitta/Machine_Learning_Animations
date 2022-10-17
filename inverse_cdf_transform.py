@@ -4,7 +4,6 @@ from math import e
 from math import log
 from scipy.stats import norm
 from scipy.stats import expon
-from scipy.integrate import quad
 import matplotlib.pyplot as plt
 import seaborn
 
@@ -32,19 +31,28 @@ choice = int(input())
 y_list = numpy.random.uniform(0, 1, n)
 vfunc = numpy.vectorize(inverse_func)
 inverse_list = vfunc(y_list, choice)
-seaborn.kdeplot(data=inverse_list)
-plt.show()
 
 
 def kde(x):
     sum = 0
     for entry in inverse_list:
-        sum += norm.pdf(x, entry)
-    return sum / len(inverse_list)
+        sum += norm.pdf(x / 0.05, entry / 0.05)
+    return sum / (len(inverse_list) * 0.05)
 
 
 numpy_kde = numpy.vectorize(kde)
-kde_list = numpy_kde(inverse_list)
+kde_list = numpy_kde(sorted(inverse_list))
+seaborn.kdeplot(data=inverse_list, color="red")
+seaborn.kdeplot(
+    data=numpy.random.standard_exponential(n)
+    if choice
+    else numpy.random.standard_normal(n),
+    color="blue",
+)
+plt.plot(sorted(inverse_list), kde_list, color="green")
+plt.show()
+
+
 pdf_func = numpy.vectorize(func)
 actual = pdf_func(inverse_list, choice)
 kl_divergence = (
@@ -58,6 +66,7 @@ class ExampleFunctionGraph(Scene):
         def pdf_init(choose, axis, scene):
             ans = VGroup()
             ans += axis.plot(lambda x: func(x, choice), color=GREEN)
+            ans.make_jagged()
             text = Tex("Actual pdf:")
             axis.fade(darkness=0.8, family=True)
             scene.add(text)
@@ -79,8 +88,7 @@ class ExampleFunctionGraph(Scene):
             axis_config={"include_numbers": True},
         )
         dot_list = []
-        graph = VGroup()
-        graph += grid.plot(
+        graph = grid.plot(
             lambda x: cdf_func(x, choice),
             color=WHITE,
         )
@@ -92,6 +100,7 @@ class ExampleFunctionGraph(Scene):
         self.add(text)
         self.play(FadeOut(text))
         grid.set_opacity(1)
+        graph.make_jagged()
         self.add(graph)
         self.play(FadeIn(graph))
         self.wait(0.5)
@@ -104,7 +113,7 @@ class ExampleFunctionGraph(Scene):
         self.play(FadeOut(text))
         graph.set_color(WHITE)
         grid.set_opacity(1)
-        for element in y_list:
+        for element in y_list[:50]:
             dot = Dot(grid.coords_to_point(0, element, 0), color=RED)
             self.add(dot)
             dot_list.append(dot)
@@ -119,7 +128,7 @@ class ExampleFunctionGraph(Scene):
             hline.append(horizontal)
             vline.append(vertical)
         dot = VGroup()
-        for i in range(n):
+        for i in range(50):
             hline[i % 10] += grid.get_horizontal_line(
                 grid.c2p(inverse_list[i], y_list[i], 0), color=BLUE
             )
@@ -156,18 +165,24 @@ class ExampleFunctionGraph(Scene):
         self.play(FadeOut(text))
         grid.set_opacity(1)
         dot.set_opacity(1)
-        legends=VGroup()
-        kde_line=Line(start=numpy.array([1,-1,0]),end=numpy.array([1.5,-1,0]),color=WHITE)
-        actual_line=Line(start=numpy.array([1,-1.5,0]),end=numpy.array([1.5,-1.5,0]),color=GREEN)
-        kde_text=Tex("kde plot").next_to(kde_line,RIGHT).scale(0.5)
-        actual_text=Tex("actual pdf").next_to(actual_line,RIGHT).scale(0.5)
-        legends+=kde_line
-        legends+=actual_line
-        legends+=kde_text
-        legends+=actual_text
-        self.add(kde_line,actual_line,kde_text,actual_text)
+        legends = VGroup()
+        kde_line = Line(
+            start=numpy.array([1, -1, 0]), end=numpy.array([1.5, -1, 0]), color=WHITE
+        )
+        actual_line = Line(
+            start=numpy.array([1, -1.5, 0]),
+            end=numpy.array([1.5, -1.5, 0]),
+            color=GREEN,
+        )
+        kde_text = Tex("kde plot").next_to(kde_line, RIGHT).scale(0.5)
+        actual_text = Tex("actual pdf").next_to(actual_line, RIGHT).scale(0.5)
+        legends += kde_line
+        legends += actual_line
+        legends += kde_text
+        legends += actual_text
+        self.add(kde_line, actual_line, kde_text, actual_text)
         self.add(graph2)
-        actual_graph=grid.plot(lambda x: func(x, choice), color=GREEN)
+        actual_graph = grid.plot(lambda x: func(x, choice), color=GREEN).make_jagged()
         self.play(FadeIn(graph2))
         self.play(FadeIn(actual_graph))
         self.wait(1)
